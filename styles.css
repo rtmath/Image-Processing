@@ -1,0 +1,13 @@
+canvas {
+  border: 1px solid black;
+}
+
+.top-container {
+  display: flex;
+  justify-content: space-evenly;
+}
+
+.container {
+   display: flex;
+   flex-direction: column;
+}
