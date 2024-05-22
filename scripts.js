@@ -1,5 +1,6 @@
 "use strict";
 
+//TODO: change 'size' to 'radius' or 'halfwidth'
 function MakeGaussianKernel(size) {
   let min = -Math.floor(size / 2);
   let max =  Math.floor(size / 2);
@@ -56,43 +57,31 @@ function GaussianBlur() {
 
 function Convolve(pixels, kernel) {
   kernel = ReverseKernel(kernel);
+  let min = -Math.floor(kernel.length / 2);
+  let max =  Math.floor(kernel.length / 2);
 
   // TODO: Edge wrapping
-  // TODO: Fix the hardcoding
   for (var i = 0; i < pixels.data.length; i += 4) {
-    let NWr = (pixels.data[i - (pixels.width * 4) - 4] || 0) * kernel[0][0];
-    let NWg = (pixels.data[i - (pixels.width * 4) - 3] || 0) * kernel[0][0];
-    let NWb = (pixels.data[i - (pixels.width * 4) - 2] || 0) * kernel[0][0];
-    let Nr  = (pixels.data[i - (pixels.width * 4) + 0] || 0) * kernel[0][1];
-    let Ng  = (pixels.data[i - (pixels.width * 4) + 1] || 0) * kernel[0][1];
-    let Nb  = (pixels.data[i - (pixels.width * 4) + 2] || 0) * kernel[0][1];
-    let NEr = (pixels.data[i - (pixels.width * 4) + 4] || 0) * kernel[0][2];
-    let NEg = (pixels.data[i - (pixels.width * 4) + 5] || 0) * kernel[0][2];
-    let NEb = (pixels.data[i - (pixels.width * 4) + 6] || 0) * kernel[0][2];
+    let red_channel   = 0;
+    let green_channel = 0;
+    let blue_channel  = 0;
 
-    let Wr = (pixels.data[i - 4] || 0) * kernel[1][0];
-    let Wg = (pixels.data[i - 3] || 0) * kernel[1][0];
-    let Wb = (pixels.data[i - 2] || 0) * kernel[1][0];
-    let r  = (pixels.data[i]     || 0) * kernel[1][1];
-    let g  = (pixels.data[i+1]   || 0) * kernel[1][1];
-    let b  = (pixels.data[i+2]   || 0)   * kernel[1][1];
-    let Er = (pixels.data[i + 4] || 0) * kernel[1][2];
-    let Eg = (pixels.data[i + 5] || 0) * kernel[1][2];
-    let Eb = (pixels.data[i + 6] || 0) * kernel[1][2];
+    for (var y = min; y < max + 1; y++) {
+      for (var x = min; x < max + 1; x++) {
+        let redIdx   = i + (y * pixels.width * 4) + (x * 4);
+        let greenIdx = redIdx + 1;
+        let blueIdx  = redIdx + 2;
 
-    let SWr = (pixels.data[i + (pixels.width * 4) - 4] || 0) * kernel[2][0];
-    let SWg = (pixels.data[i + (pixels.width * 4) - 3] || 0) * kernel[2][0];
-    let SWb = (pixels.data[i + (pixels.width * 4) - 2] || 0) * kernel[2][0];
-    let Sr  = (pixels.data[i + (pixels.width * 4) + 0] || 0) * kernel[2][1];
-    let Sg  = (pixels.data[i + (pixels.width * 4) + 1] || 0) * kernel[2][1];
-    let Sb  = (pixels.data[i + (pixels.width * 4) + 2] || 0) * kernel[2][1];
-    let SEr = (pixels.data[i + (pixels.width * 4) + 4] || 0) * kernel[2][2];
-    let SEg = (pixels.data[i + (pixels.width * 4) + 5] || 0) * kernel[2][2];
-    let SEb = (pixels.data[i + (pixels.width * 4) + 6] || 0) * kernel[2][2];
+        red_channel   += (pixels.data[redIdx]   || 0) * kernel[y + max][x + max];
+        green_channel += (pixels.data[greenIdx] || 0) * kernel[y + max][x + max];
+        blue_channel  += (pixels.data[blueIdx]  || 0) * kernel[y + max][x + max];
 
-    pixels.data[i]   = NWr + Nr + NEr + Wr + r + Er + SWr + Sr + SEr;
-    pixels.data[i+1] = NWg + Ng + NEg + Wg + g + Eg + SWg + Sg + SEg;
-    pixels.data[i+2] = NWb + Nb + NEb + Wb + b + Eb + SWb + Sb + SEb;
+      }
+    }
+
+    pixels.data[i]   = red_channel;
+    pixels.data[i+1] = green_channel;
+    pixels.data[i+2] = blue_channel;
   }
 }
 
