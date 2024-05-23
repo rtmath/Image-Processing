@@ -1,17 +1,19 @@
 "use strict";
 
-//TODO: change 'size' to 'radius' or 'halfwidth'
-function MakeGaussianKernel(size) {
-  let min = -Math.floor(size / 2);
-  let max =  Math.floor(size / 2);
+function MakeGaussianKernel(pixel_radius) {
+  // MakeGaussianKernel(1) will make a 3x3 grid,
+  // MakeGaussianKernel(2) will make a 5x5 grid, and so on
+
+  let min = -pixel_radius;
+  let max =  pixel_radius;
 
   let kernel = [];
   let sum = 0;
   for (var y = min; y < max + 1; y++) {
     kernel.push([]);
     for (var x = min; x < max + 1; x++) {
-      let e = Math.exp(-(Math.pow(y, 2) / size +
-                         Math.pow(x, 2) / size));
+      let e = Math.exp(-(Math.pow(y, 2) / (pixel_radius * 2) +
+                         Math.pow(x, 2) / (pixel_radius * 2)));
       kernel[y + max][x + max] = e;
       sum += e;
     }
@@ -49,7 +51,7 @@ function GaussianBlur() {
   let SrcImg = SrcCtx.getImageData(0, 0, SrcCan.width, SrcCan.height);
   let DestImg = DestCtx.getImageData(0, 0, DestCan.width, DestCan.height);
 
-  let kernel = MakeGaussianKernel(3);
+  let kernel = MakeGaussianKernel(1);
   Convolve(DestImg, kernel);
 
   DestCtx.putImageData(DestImg, 0, 0);
@@ -75,7 +77,6 @@ function Convolve(pixels, kernel) {
         red_channel   += (pixels.data[redIdx]   || 0) * kernel[y + max][x + max];
         green_channel += (pixels.data[greenIdx] || 0) * kernel[y + max][x + max];
         blue_channel  += (pixels.data[blueIdx]  || 0) * kernel[y + max][x + max];
-
       }
     }
 
