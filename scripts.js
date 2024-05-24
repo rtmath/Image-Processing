@@ -9,9 +9,9 @@ function MakeGaussianKernel(pixel_radius) {
 
   let kernel = [];
   let sum = 0;
-  for (var y = min; y < max + 1; y++) {
+  for (var y = min; y <= max; y++) {
     kernel.push([]);
-    for (var x = min; x < max + 1; x++) {
+    for (var x = min; x <= max; x++) {
       let e = Math.exp(-(Math.pow(y, 2) / (pixel_radius * 2) +
                          Math.pow(x, 2) / (pixel_radius * 2)));
       kernel[y + max][x + max] = e;
@@ -19,8 +19,8 @@ function MakeGaussianKernel(pixel_radius) {
     }
   }
 
-  for (y = min; y < max + 1; y++) {
-    for (x = min; x < max + 1; x++) {
+  for (y = min; y <= max; y++) {
+    for (x = min; x <= max; x++) {
       kernel[y + max][x + max] /= sum;
     }
   }
@@ -75,8 +75,8 @@ function Convolve(pixels, kernel) {
 
     let leftHorizontalBound  = Math.floor(i / rowWidth) * rowWidth;
     let rightHorizontalBound = leftHorizontalBound + (rowWidth - 1);
-    for (var y = min; y < max + 1; y++) {
-      for (var x = min; x < max + 1; x++) {
+    for (var y = min; y <= max; y++) {
+      for (var x = min; x <= max; x++) {
         let yOffset = (y * rowWidth);
         let xOffset = (x * colorChannels);
 
