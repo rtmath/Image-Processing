@@ -58,25 +58,40 @@ function GaussianBlur() {
 }
 
 function Convolve(pixels, kernel) {
+  function NotWithin(n, lowerBound, upperBound) {
+    return (n < lowerBound || n > upperBound);
+  }
+
   kernel = ReverseKernel(kernel);
   let min = -Math.floor(kernel.length / 2);
   let max =  Math.floor(kernel.length / 2);
+  let colorChannels = 4;
+  let rowWidth = pixels.width * colorChannels;
 
-  // TODO: Edge wrapping
   for (var i = 0; i < pixels.data.length; i += 4) {
     let red_channel   = 0;
     let green_channel = 0;
     let blue_channel  = 0;
 
+    let leftHorizontalBound  = Math.floor(i / rowWidth) * rowWidth;
+    let rightHorizontalBound = leftHorizontalBound + (rowWidth - 1);
     for (var y = min; y < max + 1; y++) {
       for (var x = min; x < max + 1; x++) {
-        let redIdx   = i + (y * pixels.width * 4) + (x * 4);
-        let greenIdx = redIdx + 1;
-        let blueIdx  = redIdx + 2;
+        let yOffset = (y * rowWidth);
+        let xOffset = (x * colorChannels);
 
-        red_channel   += (pixels.data[redIdx]   || 0) * kernel[y + max][x + max];
-        green_channel += (pixels.data[greenIdx] || 0) * kernel[y + max][x + max];
-        blue_channel  += (pixels.data[blueIdx]  || 0) * kernel[y + max][x + max];
+        if (NotWithin(i + xOffset, leftHorizontalBound, rightHorizontalBound)) {
+          xOffset *= -1;
+        }
+        if (NotWithin(i + yOffset, 0, pixels.data.length - 1)) {
+          yOffset *= -1;
+        }
+
+        let redIdx = i + yOffset + xOffset;
+
+        red_channel   += (pixels.data[redIdx])     * kernel[y + max][x + max];
+        green_channel += (pixels.data[redIdx + 1]) * kernel[y + max][x + max];
+        blue_channel  += (pixels.data[redIdx + 2]) * kernel[y + max][x + max];
       }
     }
 
