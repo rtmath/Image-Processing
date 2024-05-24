@@ -27,6 +27,23 @@ function MakeGaussianKernel(pixel_radius) {
   return kernel;
 }
 
+function CanvasColorInversion() {
+  let SrcCan  = document.getElementById("source");
+  let SrcCtx  = SrcCan.getContext("2d");
+  let SrcImg = SrcCtx.getImageData(0, 0, SrcCan.width, SrcCan.height);
+  let DestCan = document.getElementById("destination");
+  let DestCtx = DestCan.getContext("2d");
+  let DestImg = DestCtx.getImageData(0, 0, DestCan.width, DestCan.height);
+
+  for (var i = 0; i < SrcImg.data.length; i += 4) {
+    DestImg.data[i]   = 255 - SrcImg.data[i];
+    DestImg.data[i+1] = 255 - SrcImg.data[i+1];
+    DestImg.data[i+2] = 255 - SrcImg.data[i+2];
+  }
+
+  DestCtx.putImageData(DestImg, 0, 0);
+}
+
 function ReverseKernel(kernel) {
   let newKernel = [];
   for (var z = 0; z < kernel.length; z++) {
@@ -150,6 +167,9 @@ function OnSelectChange(e) {
   }
   if (e.target.value === "1") {
     GaussianBlur();
+  }
+  if (e.target.value === "2") {
+    CanvasColorInversion();
   }
 }
 
