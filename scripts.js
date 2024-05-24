@@ -69,9 +69,9 @@ function Convolve(pixels, kernel) {
   let rowWidth = pixels.width * colorChannels;
 
   for (var i = 0; i < pixels.data.length; i += 4) {
-    let red_channel   = 0;
-    let green_channel = 0;
-    let blue_channel  = 0;
+    let redChannel   = 0;
+    let greenChannel = 0;
+    let blueChannel  = 0;
 
     let leftHorizontalBound  = Math.floor(i / rowWidth) * rowWidth;
     let rightHorizontalBound = leftHorizontalBound + (rowWidth - 1);
@@ -89,15 +89,15 @@ function Convolve(pixels, kernel) {
 
         let redIdx = i + yOffset + xOffset;
 
-        red_channel   += (pixels.data[redIdx])     * kernel[y + max][x + max];
-        green_channel += (pixels.data[redIdx + 1]) * kernel[y + max][x + max];
-        blue_channel  += (pixels.data[redIdx + 2]) * kernel[y + max][x + max];
+        redChannel   += (pixels.data[redIdx])     * kernel[y + max][x + max];
+        greenChannel += (pixels.data[redIdx + 1]) * kernel[y + max][x + max];
+        blueChannel  += (pixels.data[redIdx + 2]) * kernel[y + max][x + max];
       }
     }
 
-    pixels.data[i]   = red_channel;
-    pixels.data[i+1] = green_channel;
-    pixels.data[i+2] = blue_channel;
+    pixels.data[i]   = redChannel;
+    pixels.data[i+1] = greenChannel;
+    pixels.data[i+2] = blueChannel;
   }
 }
 
