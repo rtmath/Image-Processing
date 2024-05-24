@@ -45,16 +45,14 @@ function ReverseKernel(kernel) {
 function GaussianBlur() {
   let SrcCan  = document.getElementById("source");
   let SrcCtx  = SrcCan.getContext("2d");
+  let SrcImg = SrcCtx.getImageData(0, 0, SrcCan.width, SrcCan.height);
   let DestCan = document.getElementById("destination");
   let DestCtx = DestCan.getContext("2d");
 
-  let SrcImg = SrcCtx.getImageData(0, 0, SrcCan.width, SrcCan.height);
-  let DestImg = DestCtx.getImageData(0, 0, DestCan.width, DestCan.height);
-
   let kernel = MakeGaussianKernel(1);
-  Convolve(DestImg, kernel);
+  Convolve(SrcImg, kernel);
 
-  DestCtx.putImageData(DestImg, 0, 0);
+  DestCtx.putImageData(SrcImg, 0, 0);
 }
 
 function Convolve(pixels, kernel) {
