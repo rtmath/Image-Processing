@@ -172,17 +172,28 @@ function OnInputChange(e) {
   fr.readAsDataURL(file);
 }
 
+let options = [
+  { name: "No Processing", fn: SrcToDest },
+  { name: "Gaussian Blur", fn: GaussianBlur},
+  { name: "Color Inversion", fn: CanvasColorInversion},
+]
+
+function BuildSelectOptions() {
+  let select = document.getElementById("algo-select");
+  for (var i = 0; i < options.length; i++) {
+    let option = document.createElement("option");
+    option.value = i;
+    option.text = options[i].name;
+    select.append(option);
+  }
+}
+
 function OnSelectChange(e) {
-  if (e.target.value === "0") {
-    SrcToDest();
-  }
-  if (e.target.value === "1") {
-    GaussianBlur();
-  }
-  if (e.target.value === "2") {
-    CanvasColorInversion();
-  }
+  let selectedOption = parseInt(e.target.value);
+  options[selectedOption].fn();
 }
 
 document.querySelector("input").onchange = OnInputChange;
 document.querySelector("select").onchange = OnSelectChange;
+
+BuildSelectOptions();
