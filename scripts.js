@@ -60,6 +60,12 @@ function ReverseKernel(kernel) {
   return newKernel;
 }
 
+function CopyPixelsToImageData(srcPixels, destImage) {
+  for (var i = 0; i < srcPixels.length; i++) {
+    destImage.data[i] = srcPixels[i];
+  }
+}
+
 function GaussianBlur() {
   let SrcCan  = document.getElementById("source");
   let SrcCtx  = SrcCan.getContext("2d");
@@ -67,8 +73,8 @@ function GaussianBlur() {
   let DestCan = document.getElementById("destination");
   let DestCtx = DestCan.getContext("2d");
 
-  let kernel = MakeGaussianKernel(1);
-  Convolve(SrcImg, kernel);
+  let output = Convolve(SrcImg, MakeGaussianKernel(1));
+  CopyPixelsToImageData(output, SrcImg);
 
   DestCtx.putImageData(SrcImg, 0, 0);
 }
@@ -118,9 +124,7 @@ function Convolve(pixels, kernel) {
     output[i+3] = 255;
   }
 
-  for (var i = 0; i < output.length; i++) {
-    pixels.data[i] = output[i];
-  }
+  return output;
 }
 
 function SrcToDest() {
