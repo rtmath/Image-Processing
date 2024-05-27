@@ -1,5 +1,46 @@
 "use strict";
 
+function GrayscaleCanvas() {
+  let SrcCan  = document.getElementById("source");
+  let SrcCtx  = SrcCan.getContext("2d");
+  let SrcImg = SrcCtx.getImageData(0, 0, SrcCan.width, SrcCan.height);
+  let DestCan = document.getElementById("destination");
+  let DestCtx = DestCan.getContext("2d");
+  let DestImg = DestCtx.getImageData(0, 0, DestCan.width, DestCan.height);
+
+  GrayscalePixels(SrcImg);
+
+  DestCtx.putImageData(SrcImg, 0, 0);
+}
+
+function GrayscalePixels(pixels) {
+  function GammaExpansion(channel) {
+    channel /= 255;
+    return (channel <= 0.04045)
+           ? channel / 12.92
+           : Math.pow((channel + 0.055) / 1.055, 2.4);
+  }
+
+  function GammaCompression(channel) {
+    channel = (channel <= 0.0031308)
+              ? channel * 12.92
+              : 1.055 * Math.pow(channel, 1.0/2.4) - 0.055;
+    return channel * 255;
+  }
+
+  for (var i = 0; i < pixels.data.length; i += 4) {
+    let linearLuminance = (GammaExpansion(pixels.data[i])   * 0.2126) +
+                          (GammaExpansion(pixels.data[i+1]) * 0.7156) +
+                          (GammaExpansion(pixels.data[i+2]) * 0.0722);
+
+    let standardRGB = GammaCompression(linearLuminance);
+
+    pixels.data[i]   = standardRGB;
+    pixels.data[i+1] = standardRGB;
+    pixels.data[i+2] = standardRGB;
+  }
+}
+
 function MakeGaussianKernel(pixel_radius) {
   // MakeGaussianKernel(1) will make a 3x3 grid,
   // MakeGaussianKernel(2) will make a 5x5 grid, and so on
@@ -176,6 +217,7 @@ let options = [
   { name: "No Processing", fn: SrcToDest },
   { name: "Gaussian Blur", fn: GaussianBlur},
   { name: "Color Inversion", fn: CanvasColorInversion},
+  { name: "Grayscale", fn: GrayscaleCanvas }
 ]
 
 function BuildSelectOptions() {
