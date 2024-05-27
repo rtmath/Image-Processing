@@ -41,6 +41,34 @@ function GrayscalePixels(pixels) {
   }
 }
 
+function SobelEdgeDetection() {
+  let SrcCan  = document.getElementById("source");
+  let SrcCtx  = SrcCan.getContext("2d");
+  let SrcImg = SrcCtx.getImageData(0, 0, SrcCan.width, SrcCan.height);
+  let DestCan = document.getElementById("destination");
+  let DestCtx = DestCan.getContext("2d");
+
+  let kernelX = [[-1, -2, -1],
+                 [ 0,  0,  0],
+                 [ 1,  2,  1]];
+  let kernelY = [[-1,  0,  1],
+                 [-2,  0,  2],
+                 [-1,  0,  1]];
+
+  GrayscalePixels(SrcImg);
+  let xOutput = Convolve(SrcImg, kernelX);
+  let yOutput = Convolve(SrcImg, kernelY);
+  let output = [];
+
+  for (var i = 0; i < xOutput.length; i++) {
+    output[i] = Math.sqrt(Math.pow(xOutput[i], 2) +
+                              Math.pow(yOutput[i], 2));
+  }
+
+  CopyPixelsToImageData(output, SrcImg);
+  DestCtx.putImageData(SrcImg, 0, 0);
+}
+
 function MakeGaussianKernel(pixel_radius) {
   // MakeGaussianKernel(1) will make a 3x3 grid,
   // MakeGaussianKernel(2) will make a 5x5 grid, and so on
@@ -215,9 +243,10 @@ function OnInputChange(e) {
 
 let options = [
   { name: "No Processing", fn: SrcToDest },
-  { name: "Gaussian Blur", fn: GaussianBlur},
-  { name: "Color Inversion", fn: CanvasColorInversion},
-  { name: "Grayscale", fn: GrayscaleCanvas }
+  { name: "Gaussian Blur", fn: GaussianBlur },
+  { name: "Color Inversion", fn: CanvasColorInversion },
+  { name: "Grayscale", fn: GrayscaleCanvas },
+  { name: "Edge Detection (Sobel)", fn: SobelEdgeDetection }
 ]
 
 function BuildSelectOptions() {
