@@ -1,74 +1,5 @@
 "use strict";
 
-function GrayscaleCanvas() {
-  let SrcCan  = document.getElementById("source");
-  let SrcCtx  = SrcCan.getContext("2d");
-  let SrcImg = SrcCtx.getImageData(0, 0, SrcCan.width, SrcCan.height);
-  let DestCan = document.getElementById("destination");
-  let DestCtx = DestCan.getContext("2d");
-  let DestImg = DestCtx.getImageData(0, 0, DestCan.width, DestCan.height);
-
-  GrayscalePixels(SrcImg);
-
-  DestCtx.putImageData(SrcImg, 0, 0);
-}
-
-function GrayscalePixels(pixels) {
-  function GammaExpansion(channel) {
-    channel /= 255;
-    return (channel <= 0.04045)
-           ? channel / 12.92
-           : Math.pow((channel + 0.055) / 1.055, 2.4);
-  }
-
-  function GammaCompression(channel) {
-    channel = (channel <= 0.0031308)
-              ? channel * 12.92
-              : 1.055 * Math.pow(channel, 1.0/2.4) - 0.055;
-    return channel * 255;
-  }
-
-  for (var i = 0; i < pixels.data.length; i += 4) {
-    let linearLuminance = (GammaExpansion(pixels.data[i])   * 0.2126) +
-                          (GammaExpansion(pixels.data[i+1]) * 0.7156) +
-                          (GammaExpansion(pixels.data[i+2]) * 0.0722);
-
-    let standardRGB = GammaCompression(linearLuminance);
-
-    pixels.data[i]   = standardRGB;
-    pixels.data[i+1] = standardRGB;
-    pixels.data[i+2] = standardRGB;
-  }
-}
-
-function SobelEdgeDetection() {
-  let SrcCan  = document.getElementById("source");
-  let SrcCtx  = SrcCan.getContext("2d");
-  let SrcImg = SrcCtx.getImageData(0, 0, SrcCan.width, SrcCan.height);
-  let DestCan = document.getElementById("destination");
-  let DestCtx = DestCan.getContext("2d");
-
-  let kernelX = [[-1, -2, -1],
-                 [ 0,  0,  0],
-                 [ 1,  2,  1]];
-  let kernelY = [[-1,  0,  1],
-                 [-2,  0,  2],
-                 [-1,  0,  1]];
-
-  GrayscalePixels(SrcImg);
-  let xOutput = Convolve(SrcImg, kernelX);
-  let yOutput = Convolve(SrcImg, kernelY);
-  let output = [];
-
-  for (var i = 0; i < xOutput.length; i++) {
-    output[i] = Math.sqrt(Math.pow(xOutput[i], 2) +
-                              Math.pow(yOutput[i], 2));
-  }
-
-  CopyPixelsToImageData(output, SrcImg);
-  DestCtx.putImageData(SrcImg, 0, 0);
-}
-
 function MakeGaussianKernel(pixel_radius) {
   // MakeGaussianKernel(1) will make a 3x3 grid,
   // MakeGaussianKernel(2) will make a 5x5 grid, and so on
@@ -97,23 +28,6 @@ function MakeGaussianKernel(pixel_radius) {
   return kernel;
 }
 
-function CanvasColorInversion() {
-  let SrcCan  = document.getElementById("source");
-  let SrcCtx  = SrcCan.getContext("2d");
-  let SrcImg = SrcCtx.getImageData(0, 0, SrcCan.width, SrcCan.height);
-  let DestCan = document.getElementById("destination");
-  let DestCtx = DestCan.getContext("2d");
-  let DestImg = DestCtx.getImageData(0, 0, DestCan.width, DestCan.height);
-
-  for (var i = 0; i < SrcImg.data.length; i += 4) {
-    DestImg.data[i]   = 255 - SrcImg.data[i];
-    DestImg.data[i+1] = 255 - SrcImg.data[i+1];
-    DestImg.data[i+2] = 255 - SrcImg.data[i+2];
-  }
-
-  DestCtx.putImageData(DestImg, 0, 0);
-}
-
 function ReverseKernel(kernel) {
   let newKernel = [];
   for (var z = 0; z < kernel.length; z++) {
@@ -129,23 +43,38 @@ function ReverseKernel(kernel) {
   return newKernel;
 }
 
-function CopyPixelsToImageData(srcPixels, destImage) {
+function CopyPixelsToImageData(srcPixels, destPixels) {
   for (var i = 0; i < srcPixels.length; i++) {
-    destImage.data[i] = srcPixels[i];
+    destPixels[i] = srcPixels[i];
   }
 }
 
-function GaussianBlur() {
-  let SrcCan  = document.getElementById("source");
-  let SrcCtx  = SrcCan.getContext("2d");
-  let SrcImg = SrcCtx.getImageData(0, 0, SrcCan.width, SrcCan.height);
-  let DestCan = document.getElementById("destination");
-  let DestCtx = DestCan.getContext("2d");
+function GrayscalePixels(pixels) {
+  function GammaExpansion(channel) {
+    channel /= 255;
+    return (channel <= 0.04045)
+           ? channel / 12.92
+           : Math.pow((channel + 0.055) / 1.055, 2.4);
+  }
 
-  let output = Convolve(SrcImg, MakeGaussianKernel(1));
-  CopyPixelsToImageData(output, SrcImg);
+  function GammaCompression(channel) {
+    channel = (channel <= 0.0031308)
+              ? channel * 12.92
+              : 1.055 * Math.pow(channel, 1.0/2.4) - 0.055;
+    return channel * 255;
+  }
 
-  DestCtx.putImageData(SrcImg, 0, 0);
+  for (var i = 0; i < pixels.data.length; i += 4) {
+    let linearLuminance = (GammaExpansion(pixels.data[i])   * 0.2126) +
+                          (GammaExpansion(pixels.data[i+1]) * 0.7156) +
+                          (GammaExpansion(pixels.data[i+2]) * 0.0722);
+
+    let standardRGB = GammaCompression(linearLuminance);
+
+    pixels.data[i]   = standardRGB;
+    pixels.data[i+1] = standardRGB;
+    pixels.data[i+2] = standardRGB;
+  }
 }
 
 function Convolve(pixels, kernel) {
@@ -196,7 +125,7 @@ function Convolve(pixels, kernel) {
   return output;
 }
 
-function SrcToDest() {
+function CanvasSrcToDest() {
   let SrcCan  = document.getElementById("source");
   let SrcCtx  = SrcCan.getContext("2d");
   let SrcImg = SrcCtx.getImageData(0, 0, SrcCan.width, SrcCan.height);
@@ -213,11 +142,82 @@ function SrcToDest() {
   DestCtx.putImageData(DestImg, 0, 0);
 }
 
-function ResetAlgorithmSelect() {
-  document.getElementById("algo-select").value = "0";
+function CanvasColorInversion() {
+  let SrcCan  = document.getElementById("source");
+  let SrcCtx  = SrcCan.getContext("2d");
+  let SrcImg = SrcCtx.getImageData(0, 0, SrcCan.width, SrcCan.height);
+  let DestCan = document.getElementById("destination");
+  let DestCtx = DestCan.getContext("2d");
+  let DestImg = DestCtx.getImageData(0, 0, DestCan.width, DestCan.height);
+
+  for (var i = 0; i < SrcImg.data.length; i += 4) {
+    DestImg.data[i]   = 255 - SrcImg.data[i];
+    DestImg.data[i+1] = 255 - SrcImg.data[i+1];
+    DestImg.data[i+2] = 255 - SrcImg.data[i+2];
+  }
+
+  DestCtx.putImageData(DestImg, 0, 0);
+}
+
+function CanvasGrayscale() {
+  let SrcCan  = document.getElementById("source");
+  let SrcCtx  = SrcCan.getContext("2d");
+  let SrcImg = SrcCtx.getImageData(0, 0, SrcCan.width, SrcCan.height);
+  let DestCan = document.getElementById("destination");
+  let DestCtx = DestCan.getContext("2d");
+  let DestImg = DestCtx.getImageData(0, 0, DestCan.width, DestCan.height);
+
+  GrayscalePixels(SrcImg);
+
+  DestCtx.putImageData(SrcImg, 0, 0);
+}
+
+function CanvasGaussianBlur() {
+  let SrcCan  = document.getElementById("source");
+  let SrcCtx  = SrcCan.getContext("2d");
+  let SrcImg = SrcCtx.getImageData(0, 0, SrcCan.width, SrcCan.height);
+  let DestCan = document.getElementById("destination");
+  let DestCtx = DestCan.getContext("2d");
+
+  let output = Convolve(SrcImg, MakeGaussianKernel(1));
+  CopyPixelsToImageData(output, SrcImg.data);
+
+  DestCtx.putImageData(SrcImg, 0, 0);
+}
+
+function CanvasSobelEdgeDetection() {
+  let SrcCan  = document.getElementById("source");
+  let SrcCtx  = SrcCan.getContext("2d");
+  let SrcImg = SrcCtx.getImageData(0, 0, SrcCan.width, SrcCan.height);
+  let DestCan = document.getElementById("destination");
+  let DestCtx = DestCan.getContext("2d");
+
+  let kernelX = [[-1, -2, -1],
+                 [ 0,  0,  0],
+                 [ 1,  2,  1]];
+  let kernelY = [[-1,  0,  1],
+                 [-2,  0,  2],
+                 [-1,  0,  1]];
+
+  GrayscalePixels(SrcImg);
+  let xOutput = Convolve(SrcImg, kernelX);
+  let yOutput = Convolve(SrcImg, kernelY);
+  let output = [];
+
+  for (var i = 0; i < xOutput.length; i++) {
+    output[i] = Math.sqrt(Math.pow(xOutput[i], 2) +
+                              Math.pow(yOutput[i], 2));
+  }
+
+  CopyPixelsToImageData(output, SrcImg.data);
+  DestCtx.putImageData(SrcImg, 0, 0);
 }
 
 function OnInputChange(e) {
+  function ResetAlgorithmSelect() {
+    document.getElementById("algo-select").value = "0";
+  }
+
   let PopulateCanvases = (img) => {
     let SrcCan  = document.getElementById("source");
     let SrcCtx  = SrcCan.getContext("2d");
@@ -242,11 +242,11 @@ function OnInputChange(e) {
 }
 
 let options = [
-  { name: "No Processing", fn: SrcToDest },
-  { name: "Gaussian Blur", fn: GaussianBlur },
+  { name: "No Processing", fn: CanvasSrcToDest },
+  { name: "Gaussian Blur", fn: CanvasGaussianBlur },
   { name: "Color Inversion", fn: CanvasColorInversion },
-  { name: "Grayscale", fn: GrayscaleCanvas },
-  { name: "Edge Detection (Sobel)", fn: SobelEdgeDetection }
+  { name: "Grayscale", fn: CanvasGrayscale },
+  { name: "Edge Detection (Sobel)", fn: CanvasSobelEdgeDetection }
 ]
 
 function BuildSelectOptions() {
