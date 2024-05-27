@@ -24,6 +24,7 @@ function MakeGaussianKernel(pixel_radius) {
       kernel[y + max][x + max] /= sum;
     }
   }
+
   return kernel;
 }
 
@@ -82,6 +83,7 @@ function Convolve(pixels, kernel) {
   let max =  Math.floor(kernel.length / 2);
   let colorChannels = 4;
   let rowWidth = pixels.width * colorChannels;
+  let output = [];
 
   for (var i = 0; i < pixels.data.length; i += 4) {
     let redChannel   = 0;
@@ -110,9 +112,14 @@ function Convolve(pixels, kernel) {
       }
     }
 
-    pixels.data[i]   = redChannel;
-    pixels.data[i+1] = greenChannel;
-    pixels.data[i+2] = blueChannel;
+    output[i]   = redChannel;
+    output[i+1] = greenChannel;
+    output[i+2] = blueChannel;
+    output[i+3] = 255;
+  }
+
+  for (var i = 0; i < output.length; i++) {
+    pixels.data[i] = output[i];
   }
 }
 
