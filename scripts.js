@@ -213,6 +213,24 @@ function CanvasSobelEdgeDetection() {
   DestCtx.putImageData(SrcImg, 0, 0);
 }
 
+function CanvasLaplacianEdgeDetection() {
+  let SrcCan  = document.getElementById("source");
+  let SrcCtx  = SrcCan.getContext("2d");
+  let SrcImg = SrcCtx.getImageData(0, 0, SrcCan.width, SrcCan.height);
+  let DestCan = document.getElementById("destination");
+  let DestCtx = DestCan.getContext("2d");
+
+  let kernel = [[1,   4, 1],
+                [4, -20, 4],
+                [1,   4, 1]];
+
+  GrayscalePixels(SrcImg);
+  let output = Convolve(SrcImg, kernel);
+  CopyPixelsToImageData(output, SrcImg.data);
+
+  DestCtx.putImageData(SrcImg, 0, 0);
+}
+
 function OnInputChange(e) {
   function ResetAlgorithmSelect() {
     document.getElementById("algo-select").value = "0";
@@ -246,7 +264,8 @@ let options = [
   { name: "Gaussian Blur", fn: CanvasGaussianBlur },
   { name: "Color Inversion", fn: CanvasColorInversion },
   { name: "Grayscale", fn: CanvasGrayscale },
-  { name: "Edge Detection (Sobel)", fn: CanvasSobelEdgeDetection }
+  { name: "Edge Detection (Sobel)", fn: CanvasSobelEdgeDetection },
+  { name: "Edge Detection (Laplacian)", fn: CanvasLaplacianEdgeDetection }
 ]
 
 function BuildSelectOptions() {
