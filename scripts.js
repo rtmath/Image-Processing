@@ -206,7 +206,7 @@ function CanvasSobelEdgeDetection() {
 
   for (var i = 0; i < xOutput.length; i++) {
     output[i] = Math.sqrt(Math.pow(xOutput[i], 2) +
-                              Math.pow(yOutput[i], 2));
+                          Math.pow(yOutput[i], 2));
   }
 
   CopyPixelsToImageData(output, SrcImg.data);
@@ -231,34 +231,6 @@ function CanvasLaplacianEdgeDetection() {
   DestCtx.putImageData(SrcImg, 0, 0);
 }
 
-function OnInputChange(e) {
-  function ResetAlgorithmSelect() {
-    document.getElementById("algo-select").value = "0";
-  }
-
-  let PopulateCanvases = (img) => {
-    let SrcCan  = document.getElementById("source");
-    let SrcCtx  = SrcCan.getContext("2d");
-    let DestCan = document.getElementById("destination");
-    let DestCtx = DestCan.getContext("2d");
-
-    SrcCtx.drawImage(img, 0, 0);
-    DestCtx.drawImage(img, 0, 0);
-    ResetAlgorithmSelect();
-  }
-
-  let CreateImage = () => {
-    let img = new Image();
-    img.onload = () => PopulateCanvases(img);
-    img.src = fr.result;
-  }
-
-  let file = e.target.files[0];
-  var fr = new FileReader();
-  fr.onload = CreateImage;
-  fr.readAsDataURL(file);
-}
-
 let options = [
   { name: "No Processing", fn: CanvasSrcToDest },
   { name: "Gaussian Blur", fn: CanvasGaussianBlur },
@@ -281,6 +253,34 @@ function BuildSelectOptions() {
 function OnSelectChange(e) {
   let selectedOption = parseInt(e.target.value);
   options[selectedOption].fn();
+}
+
+function OnInputChange(e) {
+  function ResetAlgorithmSelect() {
+    document.getElementById("algo-select").value = "0";
+  }
+
+  function PopulateCanvases(img) {
+    let SrcCan  = document.getElementById("source");
+    let SrcCtx  = SrcCan.getContext("2d");
+    let DestCan = document.getElementById("destination");
+    let DestCtx = DestCan.getContext("2d");
+
+    SrcCtx.drawImage(img, 0, 0);
+    DestCtx.drawImage(img, 0, 0);
+    ResetAlgorithmSelect();
+  }
+
+  function CreateImage() {
+    let img = new Image();
+    img.onload = () => PopulateCanvases(img);
+    img.src = fr.result;
+  }
+
+  let file = e.target.files[0];
+  var fr = new FileReader();
+  fr.onload = CreateImage;
+  fr.readAsDataURL(file);
 }
 
 document.querySelector("input").onchange = OnInputChange;
