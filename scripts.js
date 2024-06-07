@@ -1,5 +1,28 @@
 "use strict";
 
+function DFT(signal) {
+  let N = signal.length;
+  let xks = [];
+
+  for (var i = 0; i < N; i++) {
+    let x = new ComplexNumber(0, 0);
+    for (var n = 0; n < N; n++) {
+      let exp = -(2 * Math.PI * n * (i / N));
+      let eulersForm = new ComplexNumber(Math.cos(exp), Math.sin(exp));
+      x = x.add(eulersForm.multScalar(signal[n]));
+    }
+
+    xks[i] = new ComplexNumber(+(x.real.toFixed(3)), +(x.imag.toFixed(3)));
+  }
+
+  for (i = 0; i < N; i++) {
+    //console.log(`Frequency at X[${i}]: ${xks[i].abs() * 2 / N}`);
+    xks[i] = xks[i].abs() * 2 / N;
+  }
+
+  return xks;
+}
+
 function MakeGaussianKernel(pixel_radius) {
   // MakeGaussianKernel(1) will make a 3x3 grid,
   // MakeGaussianKernel(2) will make a 5x5 grid, and so on
