@@ -1,12 +1,21 @@
+function CheckProbablyZero(n) {
+  let epsilon = 1e-10;
+  return (Math.abs(n) <= epsilon) ? 0 : n;
+}
+
+function CPZ(n) {
+  return CheckProbablyZero(n);
+}
+
 class ComplexNumber {
-  constructor(real, imaginary) {
-    this.real = real;
-    this.imag = imaginary;
+  constructor(real = 0, imaginary = 0) {
+    this.real = CPZ(real);
+    this.imag = CPZ(imaginary);
   }
 
   abs() {
-    return Math.sqrt(this.real * this.real +
-                     this.imag * this.imag);
+    return Math.sqrt(CPZ(this.real * this.real) +
+                     CPZ(this.imag * this.imag));
   }
 
   conjugate() {
@@ -14,13 +23,13 @@ class ComplexNumber {
   }
 
   add(cmplxN) {
-    return new ComplexNumber(this.real + cmplxN.real,
-                             this.imag + cmplxN.imag);
+    return new ComplexNumber(CPZ(this.real + cmplxN.real),
+                             CPZ(this.imag + cmplxN.imag));
   }
 
   sub(cmplxN) {
-    return new ComplexNumber(this.real - cmplxN.real,
-                             this.imag - cmplxN.imag);
+    return new ComplexNumber(CPZ(this.real - cmplxN.real),
+                             CPZ(this.imag - cmplxN.imag));
   }
 
   mult(cmplxN) {
@@ -29,19 +38,24 @@ class ComplexNumber {
                (this.imag * cmplxN.imag * -1);
     let imag = (this.real * cmplxN.imag) +
                (this.imag * cmplxN.real);
-    return new ComplexNumber(real, imag);
+    return new ComplexNumber(CPZ(real), CPZ(imag));
   }
 
   multScalar(n) {
-    return new ComplexNumber(this.real * n, this.imag * n);
+    return new ComplexNumber(CPZ(this.real * n), CPZ(this.imag * n));
   }
 
   div(cmplxN) {
-    let numerator = this.mult(cmplxN.getConjugate());
-    let denominator = cmplxN.mult(cmplxN.getConjugate());
+    let numerator = this.mult(cmplxN.conjugate());
+    let denominator = cmplxN.mult(cmplxN.conjugate());
 
-    return new ComplexNumber(numerator.real / denominator.real,
-                             numerator.imag / denominator.real);
+    return new ComplexNumber(CPZ(numerator.real / denominator.real),
+                             CPZ(numerator.imag / denominator.real));
+  }
+
+  divScalar(n) {
+    return new ComplexNumber(CPZ(this.real / n),
+                             CPZ(this.real / n));
   }
 
   exp(n) {
@@ -53,7 +67,7 @@ class ComplexNumber {
     for (var i = 1; i < n; i++) {
       product = product.mult(this);
     }
-    return product;
+    return CPZ(product);
   }
 
   toString() {
