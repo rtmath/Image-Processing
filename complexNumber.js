@@ -55,7 +55,7 @@ class ComplexNumber {
 
   divScalar(n) {
     return new ComplexNumber(CPZ(this.real / n),
-                             CPZ(this.real / n));
+                             CPZ(this.imag / n));
   }
 
   exp(n) {
