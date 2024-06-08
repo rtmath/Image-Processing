@@ -1,6 +1,10 @@
 "use strict";
 
 function DFT(signal) {
+  function FixDecimal(n) {
+    return +(n.toFixed(3));
+  }
+
   let N = signal.length;
   let xks = [];
 
@@ -12,15 +16,32 @@ function DFT(signal) {
       x = x.add(eulersForm.multScalar(signal[n]));
     }
 
-    xks[i] = new ComplexNumber(+(x.real.toFixed(3)), +(x.imag.toFixed(3)));
-  }
-
-  for (i = 0; i < N; i++) {
-    //console.log(`Frequency at X[${i}]: ${xks[i].abs() * 2 / N}`);
-    xks[i] = xks[i].abs() * 2 / N;
+    xks[i] = new ComplexNumber(FixDecimal(x.real), FixDecimal(x.imag));
   }
 
   return xks;
+}
+
+function IDFT(signal) {
+  function FixDecimal(n) {
+    return +(n.toFixed(3));
+  }
+
+  let N = signal.length;
+  let xks = [];
+
+  for (var i = 0; i < N; i++) {
+    let x = new ComplexNumber(0, 0);
+    for (var n = 0; n < N; n++) {
+      let exp = (2 * Math.PI * n * (i / N));
+      let eulersForm = new ComplexNumber(Math.cos(exp), Math.sin(exp));
+      x = x.add(eulersForm.mult(signal[n]));
+    }
+
+    xks[i] = new ComplexNumber(FixDecimal(x.real / N), FixDecimal(x.imag / N));
+  }
+
+  return xks.map((xk) => xk.real);
 }
 
 function MakeGaussianKernel(pixel_radius) {
