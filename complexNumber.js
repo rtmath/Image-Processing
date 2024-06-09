@@ -1,3 +1,5 @@
+"use strict";
+
 function CheckProbablyZero(n) {
   let epsilon = 1e-10;
   return (Math.abs(n) <= epsilon) ? 0 : n;
