@@ -218,13 +218,27 @@ function CanvasLaplacianEdgeDetection() {
   });
 }
 
+function CanvasLoGEdgeDetection() {
+  PixelProcessing((src, dest) => {
+    let kernel = [[1,   4, 1],
+                  [4, -20, 4],
+                  [1,   4, 1]];
+
+    src = GrayscalePixels(src);
+    src = GaussianBlur(src, 1);
+    let edges = Convolve(src, kernel);
+    CopyPixels(edges, dest.data);
+  });
+}
+
 let options = [
   { name: "No Processing", fn: CanvasSrcToDest },
   { name: "Gaussian Blur", fn: CanvasGaussianBlur },
   { name: "Color Inversion", fn: CanvasColorInversion },
   { name: "Grayscale", fn: CanvasGrayscale },
   { name: "Edge Detection (Sobel)", fn: CanvasSobelEdgeDetection },
-  { name: "Edge Detection (Laplacian)", fn: CanvasLaplacianEdgeDetection }
+  { name: "Edge Detection (Laplacian)", fn: CanvasLaplacianEdgeDetection },
+  { name: "Edge Detection (Laplacian of Gaussian)", fn: CanvasLoGEdgeDetection },
 ]
 
 function BuildSelectOptions() {
