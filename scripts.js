@@ -6,21 +6,21 @@ function CopyPixels(srcPixels, destPixels) {
   }
 }
 
-function GaussianBlur(imgData, pixel_radius) {
-  function MakeGaussianKernel(px_radius) {
+function GaussianBlur(imgData, pixelRadius) {
+  function MakeGaussianKernel(pxRadius) {
     // MakeGaussianKernel(1) will make a 3x3 grid,
     // MakeGaussianKernel(2) will make a 5x5 grid, and so on
 
-    let min = -px_radius;
-    let max =  px_radius;
+    let min = -pxRadius;
+    let max =  pxRadius;
 
     let kernel = [];
     let sum = 0;
     for (var y = min; y <= max; y++) {
       kernel.push([]);
       for (var x = min; x <= max; x++) {
-        let e = Math.exp(-(Math.pow(y, 2) / (px_radius * 2) +
-                           Math.pow(x, 2) / (px_radius * 2)));
+        let e = Math.exp(-(Math.pow(y, 2) / (pxRadius * 2) +
+                           Math.pow(x, 2) / (pxRadius * 2)));
         kernel[y + max][x + max] = e;
         sum += e;
       }
@@ -36,7 +36,7 @@ function GaussianBlur(imgData, pixel_radius) {
   }
 
   let output = new ImageData(imgData.width, imgData.height);
-  let blurredPixels = Convolve(imgData, MakeGaussianKernel(pixel_radius));
+  let blurredPixels = Convolve(imgData, MakeGaussianKernel(pixelRadius));
   CopyPixels(blurredPixels, output.data);
   return output;
 }
