@@ -80,6 +80,49 @@ function FFT(signal) {
   return f;
 }
 
+function IFFT(signal) {
+  function FixDecimal(n) {
+    return +(n.toFixed(3));
+  }
+
+  function InverseFastFourierTransform(_signal) {
+    let N = _signal.length;
+    if (N === 1) { return _signal }
+
+    let Xeven = [];
+    let Xodd  = [];
+
+    for (var i = 0; i < N / 2; i++) {
+      Xeven[i] = _signal[2 * i];
+      Xodd [i] = _signal[2 * i + 1];
+    }
+
+    let Feven = InverseFastFourierTransform(Xeven);
+    let Fodd  = InverseFastFourierTransform(Xodd);
+    let f = [];
+
+    for (var j = 0; j < N / 2; j++) {
+      let exp = (2 * Math.PI * (j / N));
+      let eulersForm = new ComplexNumber(Math.cos(exp), Math.sin(exp));
+      let Fodd_prime = Fodd[j].mult(eulersForm);
+      f[j] = Feven[j].add(Fodd_prime);
+      f[j + (N / 2)] = Feven[j].sub(Fodd_prime);
+    }
+
+    for (var l = 0; l < f.length; l++) {
+      f[l].real = FixDecimal(f[l].real);
+      f[l].imag = FixDecimal(f[l].imag);
+    }
+
+    return f;
+  }
+
+  return InverseFastFourierTransform(signal).map((n) =>
+    new ComplexNumber(FixDecimal(n.real / signal.length),
+                      FixDecimal(n.imag / signal.length))
+  );
+}
+
 function MakeGaussianKernel(pixel_radius) {
   // MakeGaussianKernel(1) will make a 3x3 grid,
   // MakeGaussianKernel(2) will make a 5x5 grid, and so on
