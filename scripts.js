@@ -43,7 +43,7 @@ function ReverseKernel(kernel) {
   return newKernel;
 }
 
-function CopyPixelsToImageData(srcPixels, destPixels) {
+function CopyPixels(srcPixels, destPixels) {
   for (var i = 0; i < srcPixels.length; i++) {
     destPixels[i] = srcPixels[i];
   }
@@ -64,6 +64,8 @@ function GrayscalePixels(pixels) {
     return channel * 255;
   }
 
+  let output = new ImageData(pixels.width, pixels.height);
+
   for (var i = 0; i < pixels.data.length; i += 4) {
     let linearLuminance = (GammaExpansion(pixels.data[i])   * 0.2126) +
                           (GammaExpansion(pixels.data[i+1]) * 0.7156) +
@@ -71,10 +73,13 @@ function GrayscalePixels(pixels) {
 
     let standardRGB = GammaCompression(linearLuminance);
 
-    pixels.data[i]   = standardRGB;
-    pixels.data[i+1] = standardRGB;
-    pixels.data[i+2] = standardRGB;
+    output.data[i]   = standardRGB;
+    output.data[i+1] = standardRGB;
+    output.data[i+2] = standardRGB;
+    output.data[i+3] = 255;
   }
+
+  return output;
 }
 
 function Convolve(pixels, kernel) {
@@ -125,110 +130,85 @@ function Convolve(pixels, kernel) {
   return output;
 }
 
-function CanvasSrcToDest() {
+function PixelProcessing(processingFn) {
   let SrcCan  = document.getElementById("source");
   let SrcCtx  = SrcCan.getContext("2d");
-  let SrcImg = SrcCtx.getImageData(0, 0, SrcCan.width, SrcCan.height);
+  let SrcImg  = SrcCtx.getImageData(0, 0, SrcCan.width, SrcCan.height);
   let DestCan = document.getElementById("destination");
   let DestCtx = DestCan.getContext("2d");
   let DestImg = DestCtx.getImageData(0, 0, DestCan.width, DestCan.height);
 
-  for (var i = 0; i < SrcImg.data.length; i += 4) {
-    DestImg.data[i]   = SrcImg.data[i];
-    DestImg.data[i+1] = SrcImg.data[i+1];
-    DestImg.data[i+2] = SrcImg.data[i+2];
-  }
-
+  processingFn(SrcImg, DestImg);
   DestCtx.putImageData(DestImg, 0, 0);
+}
+
+function CanvasSrcToDest() {
+  PixelProcessing((src, dest) => {
+    for (var i = 0; i < src.data.length; i += 4) {
+      dest.data[i]   = src.data[i];
+      dest.data[i+1] = src.data[i+1];
+      dest.data[i+2] = src.data[i+2];
+    }
+  });
 }
 
 function CanvasColorInversion() {
-  let SrcCan  = document.getElementById("source");
-  let SrcCtx  = SrcCan.getContext("2d");
-  let SrcImg = SrcCtx.getImageData(0, 0, SrcCan.width, SrcCan.height);
-  let DestCan = document.getElementById("destination");
-  let DestCtx = DestCan.getContext("2d");
-  let DestImg = DestCtx.getImageData(0, 0, DestCan.width, DestCan.height);
-
-  for (var i = 0; i < SrcImg.data.length; i += 4) {
-    DestImg.data[i]   = 255 - SrcImg.data[i];
-    DestImg.data[i+1] = 255 - SrcImg.data[i+1];
-    DestImg.data[i+2] = 255 - SrcImg.data[i+2];
-  }
-
-  DestCtx.putImageData(DestImg, 0, 0);
+  PixelProcessing((src, dest) => {
+    for (var i = 0; i < src.data.length; i += 4) {
+      dest.data[i]   = 255 - src.data[i];
+      dest.data[i+1] = 255 - src.data[i+1];
+      dest.data[i+2] = 255 - src.data[i+2];
+    }
+  });
 }
 
 function CanvasGrayscale() {
-  let SrcCan  = document.getElementById("source");
-  let SrcCtx  = SrcCan.getContext("2d");
-  let SrcImg = SrcCtx.getImageData(0, 0, SrcCan.width, SrcCan.height);
-  let DestCan = document.getElementById("destination");
-  let DestCtx = DestCan.getContext("2d");
-  let DestImg = DestCtx.getImageData(0, 0, DestCan.width, DestCan.height);
-
-  GrayscalePixels(SrcImg);
-
-  DestCtx.putImageData(SrcImg, 0, 0);
+  PixelProcessing((src, dest) => {
+    let GrayImg = GrayscalePixels(src);
+    CopyPixels(GrayImg.data, dest.data);
+  });
 }
 
 function CanvasGaussianBlur() {
-  let SrcCan  = document.getElementById("source");
-  let SrcCtx  = SrcCan.getContext("2d");
-  let SrcImg = SrcCtx.getImageData(0, 0, SrcCan.width, SrcCan.height);
-  let DestCan = document.getElementById("destination");
-  let DestCtx = DestCan.getContext("2d");
-
-  let output = Convolve(SrcImg, MakeGaussianKernel(1));
-  CopyPixelsToImageData(output, SrcImg.data);
-
-  DestCtx.putImageData(SrcImg, 0, 0);
+  PixelProcessing((src, dest) => {
+    let blurredPixels = Convolve(src, MakeGaussianKernel(1));
+    CopyPixels(blurredPixels, dest.data);
+  });
 }
 
 function CanvasSobelEdgeDetection() {
-  let SrcCan  = document.getElementById("source");
-  let SrcCtx  = SrcCan.getContext("2d");
-  let SrcImg = SrcCtx.getImageData(0, 0, SrcCan.width, SrcCan.height);
-  let DestCan = document.getElementById("destination");
-  let DestCtx = DestCan.getContext("2d");
+  PixelProcessing((src, dest) => {
+    let kernelX = [[-1, -2, -1],
+                   [ 0,  0,  0],
+                   [ 1,  2,  1]];
+    let kernelY = [[-1,  0,  1],
+                   [-2,  0,  2],
+                   [-1,  0,  1]];
 
-  let kernelX = [[-1, -2, -1],
-                 [ 0,  0,  0],
-                 [ 1,  2,  1]];
-  let kernelY = [[-1,  0,  1],
-                 [-2,  0,  2],
-                 [-1,  0,  1]];
+    let GrayImg = GrayscalePixels(src);
+    let magnitudeX = Convolve(GrayImg, kernelX);
+    let magnitudeY = Convolve(GrayImg, kernelY);
+    let magnitude2d = [];
 
-  GrayscalePixels(SrcImg);
-  let xOutput = Convolve(SrcImg, kernelX);
-  let yOutput = Convolve(SrcImg, kernelY);
-  let output = [];
+    for (var i = 0; i < magnitudeX.length; i++) {
+      magnitude2d[i] = Math.sqrt(Math.pow(magnitudeX[i], 2) +
+                                 Math.pow(magnitudeY[i], 2));
+    }
 
-  for (var i = 0; i < xOutput.length; i++) {
-    output[i] = Math.sqrt(Math.pow(xOutput[i], 2) +
-                          Math.pow(yOutput[i], 2));
-  }
-
-  CopyPixelsToImageData(output, SrcImg.data);
-  DestCtx.putImageData(SrcImg, 0, 0);
+    CopyPixels(magnitude2d, dest.data);
+  });
 }
 
 function CanvasLaplacianEdgeDetection() {
-  let SrcCan  = document.getElementById("source");
-  let SrcCtx  = SrcCan.getContext("2d");
-  let SrcImg = SrcCtx.getImageData(0, 0, SrcCan.width, SrcCan.height);
-  let DestCan = document.getElementById("destination");
-  let DestCtx = DestCan.getContext("2d");
+  PixelProcessing((src, dest) => {
+    let kernel = [[1,   4, 1],
+                  [4, -20, 4],
+                  [1,   4, 1]];
 
-  let kernel = [[1,   4, 1],
-                [4, -20, 4],
-                [1,   4, 1]];
-
-  GrayscalePixels(SrcImg);
-  let output = Convolve(SrcImg, kernel);
-  CopyPixelsToImageData(output, SrcImg.data);
-
-  DestCtx.putImageData(SrcImg, 0, 0);
+    src = GrayscalePixels(src);
+    let edges = Convolve(src, kernel);
+    CopyPixels(edges, dest.data);
+  });
 }
 
 let options = [
