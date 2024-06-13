@@ -310,6 +310,11 @@ function OnInputChange(e) {
     let DestCan = document.getElementById("destination");
     let DestCtx = DestCan.getContext("2d");
 
+    SrcCan.width   = img.width;
+    SrcCan.height  = img.height;
+    DestCan.width  = img.width;
+    DestCan.height = img.height;
+
     SrcCtx.drawImage(img, 0, 0);
     DestCtx.drawImage(img, 0, 0);
     ResetAlgorithmSelect();
