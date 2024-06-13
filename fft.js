@@ -4,6 +4,16 @@ function FixDecimal(n) {
   return +(n.toFixed(3));
 }
 
+function CenterFFT(freqs, imgWidth) {
+  let output = [];
+  let halfway = (freqs.length / 2) + (imgWidth / 2);
+  for (var i = halfway; i < freqs.length + (imgWidth); i++) {
+    output[i - halfway] = freqs[i % freqs.length];
+    output[i % freqs.length] = freqs[i - halfway];
+  }
+  return output;
+}
+
 function DFT(signal) {
   let N = signal.length;
   let xks = [];

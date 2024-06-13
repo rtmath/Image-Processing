@@ -231,6 +231,48 @@ function CanvasLoGEdgeDetection() {
   });
 }
 
+function CanvasFFT() {
+  PixelProcessing((src, dest) => {
+    let colorChannels = 4;
+    let complexX = [];
+    let complexY = [];
+
+    let GrayImg = GrayscalePixels(src);
+
+    let i = 0;
+    for (var y = 0; y < GrayImg.height; y++) {
+      for (var x = 0; x < GrayImg.width; x++) {
+        let index        = (y * GrayImg.width * colorChannels) + (x * colorChannels);
+        let flippedIndex = (x * GrayImg.width * colorChannels) + (y * colorChannels);
+
+        complexX[i] = new ComplexNumber(GrayImg.data[index]);
+        complexY[i] = new ComplexNumber(GrayImg.data[flippedIndex]);
+        i++;
+      }
+    }
+
+    let freqsX = FFT(complexX);
+    let freqsY = FFT(complexY);
+    let maxX = freqsX[0].real;
+    let maxY = freqsY[0].real;
+    freqsX = CenterFFT(freqsX, GrayImg.width);
+    freqsY = CenterFFT(freqsY, GrayImg.width);
+
+    let max = Math.log(Math.sqrt((maxX ** 2) + (maxY ** 2)));
+
+    for (i = 0; i < freqsX.length; i++) {
+      let magnitude = Math.log(Math.sqrt((freqsX[i].real ** 2) +
+                                         (freqsY[i].real ** 2)));
+      let magnitudeToRGB = Math.round((magnitude * 255) / max);
+
+      dest.data[i * colorChannels    ] = magnitudeToRGB;
+      dest.data[i * colorChannels + 1] = 0;
+      dest.data[i * colorChannels + 2] = 0;
+      dest.data[i * colorChannels + 3] = 255;
+    }
+  });
+}
+
 let options = [
   { name: "No Processing", fn: CanvasSrcToDest },
   { name: "Gaussian Blur", fn: CanvasGaussianBlur },
@@ -239,6 +281,7 @@ let options = [
   { name: "Edge Detection (Sobel)", fn: CanvasSobelEdgeDetection },
   { name: "Edge Detection (Laplacian)", fn: CanvasLaplacianEdgeDetection },
   { name: "Edge Detection (Laplacian of Gaussian)", fn: CanvasLoGEdgeDetection },
+  { name: "Fast Fourier Transform", fn: CanvasFFT },
 ]
 
 function BuildSelectOptions() {
