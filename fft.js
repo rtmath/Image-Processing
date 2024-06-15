@@ -23,7 +23,7 @@ function DFT(signal) {
     for (var n = 0; n < N; n++) {
       let exp = -(2 * Math.PI * n * (i / N));
       let eulersForm = new ComplexNumber(Math.cos(exp), Math.sin(exp));
-      x = x.add(eulersForm.multScalar(signal[n]));
+      x = x.add(eulersForm.mult(signal[n]));
     }
 
     xks[i] = new ComplexNumber(FixDecimal(x.real), FixDecimal(x.imag));
@@ -51,8 +51,9 @@ function IDFT(signal) {
 }
 
 function FFT(signal) {
+  // signal must be a power of 2
   let N = signal.length;
-  if (N === 1) { return signal }
+  if (N === 1) { return signal; }
 
   let Xeven = [];
   let Xodd  = [];
@@ -83,6 +84,7 @@ function FFT(signal) {
 }
 
 function IFFT(signal) {
+  // signal must be power of 2
   function InverseFastFourierTransform(_signal) {
     let N = _signal.length;
     if (N === 1) { return _signal }
